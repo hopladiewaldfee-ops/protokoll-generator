@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protokoll-Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #3a8c5c;
+      --primary-dark: #256040;
+      --primary-light: #e8f5ee;
+      --accent: #52b77a;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warn: #d97706;
+      --bg: #f2f7f4;
+      --card: #ffffff;
+      --border: #c8ddd1;
+      --text: #1e2a3b;
+      --muted: #64748b;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(0,0,0,.07);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px 16px 48px;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      max-width: 900px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .app-header .logo {
+      width: 46px; height: 46px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 24px; flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .app-header p { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 20px;
+      max-width: 900px;
+      margin: 0 auto 12px;
+    }
+    .card-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 16px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    /* ── Grid / Fields ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    @media (max-width: 600px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: .92rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+      resize: vertical;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(58,140,92,.14);
+    }
+    textarea { min-height: 60px; }
+
+    /* ── TOP (Tagesordnungspunkt) ── */
+    .top-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .top-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .top-item.drag-over { border-color: var(--primary); background: var(--primary-light); }
+
+    .top-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafd;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      cursor: grab;
+    }
+    .top-num {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .top-title-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+      padding: 2px 4px;
+    }
+    .top-title-input:focus { outline: none; }
+
+    .top-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+    .top-section-label {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    /* ── Aufgaben-Tabelle ── */
+    .aufgaben-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+    .aufgaben-table th {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 2px solid var(--primary);
+    }
+    .aufgaben-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .aufgaben-table td input {
+      border: none;
+      background: transparent;
+      width: 100%;
+      padding: 2px 4px;
+      font-size: .88rem;
+    }
+    .aufgaben-table td input:focus {
+      background: var(--primary-light);
+      border-radius: 4px;
+      outline: none;
+    }
+    .aufgaben-table tr:hover td { background: #f8fafd; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 7px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .15s, transform .08s, box-shadow .15s;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 2px 8px rgba(26,86,219,.25); }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+    .btn-outline:hover { background: var(--primary-light); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { background: #f0f4f8; color: var(--text); }
+
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-sm { padding: 5px 10px; font-size: .8rem; }
+
+    .btn-pdf { background: #dc2626; color: #fff; }
+    .btn-pdf:hover { background: #b91c1c; box-shadow: 0 2px 8px rgba(220,38,38,.3); }
+
+    .btn-word { background: #1d4ed8; color: #fff; }
+    .btn-word:hover { background: #1e40af; box-shadow: 0 2px 8px rgba(29,78,216,.3); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar-right { margin-left: auto; display: flex; gap: 10px; }
+
+    /* ── Export Bar ── */
+    .export-bar {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+    .export-bar-label {
+      font-weight: 600;
+      font-size: .9rem;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .export-bar-divider {
+      width: 1px; height: 30px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: #1e2a3b;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Drag handle ── */
+    .drag-handle { color: #b0bec5; cursor: grab; font-size: 14px; }
+
+    /* ── Besprechungstyp badge ── */
+    .typ-badge {
+      font-size: .75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      white-space: nowrap;
+    }
+
+    .field-group { }
+
+    hr.section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 4px 0 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="logo">📋</div>
+  <div>
+    <h1>Protokoll-Generator</h1>
+    <p>Notizen strukturiert erfassen und als PDF oder Word exportieren</p>
+  </div>
+</div>
+
+<!-- ── Kopfdaten ── -->
+<div class="card">
+  <div class="card-title">Besprechungsdaten</div>
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="grid-2">
+      <div class="field-group">
+        <label>Titel / Betreff</label>
+        <input type="text" id="titel" placeholder="z. B. Projektstatus-Meeting Q2" />
+      </div>
+      <div class="field-group">
+        <label>Besprechungstyp</label>
+        <select id="typ">
+          <option>Besprechung</option>
+          <option>Projektmeeting</option>
+          <option>Jour fixe</option>
+          <option>Workshop</option>
+          <option>Telefonkonferenz</option>
+          <option>Videokonferenz</option>
+          <option>Statusmeeting</option>
+          <option>Sonstiges</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="field-group">
+        <label>Datum</label>
+        <input type="date" id="datum" />
+      </div>
+      <div class="field-group">
+        <label>Uhrzeit (von)</label>
+        <input type="time" id="uhrzeit_von" />
+      </div>
+      <div class="field-group">
+        <label>Uhrzeit (bis)</label>
+        <input type="time" id="uhrzeit_bis" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field-group">
+        <label>Ort / Raum</label>
+        <input type="text" id="ort" placeholder="z. B. Konferenzraum 3 / Teams" />
+      </div>
+      <div class="field-group">
+        <label>Protokollführer/in</label>
+        <input type="text" id="protokollfuehrer" placeholder="Name" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Teilnehmer (kommagetrennt)</label>
+      <input type="text" id="teilnehmer" placeholder="z. B. Max Müller, Anna Schmidt, Klaus Weber" />
+    </div>
+    <div class="field-group">
+      <label>Entschuldigt / Abwesend</label>
+      <input type="text" id="abwesend" placeholder="z. B. Lisa Braun (Urlaub)" />
+    </div>
+    <div class="field-group">
+      <label>Verteiler</label>
+      <input type="text" id="verteiler" placeholder="Empfänger des Protokolls (optional)" />
+    </div>
+  </div>
+</div>
+
+<!-- ── TOPs ── -->
+<div class="card">
+  <div class="card-title">Tagesordnungspunkte</div>
+  <div class="top-list" id="topList"></div>
+  <div style="margin-top:16px;">
+    <button class="btn btn-outline" onclick="addTop()">
+      + Tagesordnungspunkt hinzufügen
+    </button>
+  </div>
+</div>
+
+<!-- ── Abschluss ── -->
+<div class="card">
+  <div class="card-title">Abschluss</div>
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="field-group">
+      <label>Nächster Termin</label>
+      <input type="text" id="naechster_termin" placeholder="z. B. 15.07.2025, 10:00 Uhr, Raum 3" />
+    </div>
+    <div class="field-group">
+      <label>Sonstige Anmerkungen</label>
+      <textarea id="anmerkungen" placeholder="Ergänzende Hinweise oder Bemerkungen..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ── Export ── -->
+<div class="export-bar">
+  <span class="export-bar-label">Exportieren als</span>
+  <button class="btn btn-pdf" onclick="exportPDF()">
+    🗎 PDF herunterladen
+  </button>
+  <button class="btn btn-word" onclick="exportWord()">
+    📄 Word (.docx) herunterladen
+  </button>
+  <div class="export-bar-divider"></div>
+  <button class="btn btn-ghost" onclick="clearAll()">
+    ✕ Alles zurücksetzen
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<!-- Libraries from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+// ────────────────────────────────────────────
+// State & Init
+// ────────────────────────────────────────────
+let topCounter = 0;
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Heutiges Datum vorausfüllen
+  document.getElementById('datum').value = new Date().toISOString().split('T')[0];
+  addTop(); // Ersten TOP automatisch hinzufügen
+  loadFromStorage();
+  setInterval(saveToStorage, 3000); // Auto-Save alle 3s
+});
+
+// ────────────────────────────────────────────
+// LocalStorage
+// ────────────────────────────────────────────
+function saveToStorage() {
+  const data = collectData();
+  localStorage.setItem('protokoll_data', JSON.stringify(data));
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem('protokoll_data');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    setField('titel', d.titel);
+    setField('typ', d.typ);
+    setField('datum', d.datum);
+    setField('uhrzeit_von', d.uhrzeit_von);
+    setField('uhrzeit_bis', d.uhrzeit_bis);
+    setField('ort', d.ort);
+    setField('protokollfuehrer', d.protokollfuehrer);
+    setField('teilnehmer', d.teilnehmer);
+    setField('abwesend', d.abwesend);
+    setField('verteiler', d.verteiler);
+    setField('naechster_termin', d.naechster_termin);
+    setField('anmerkungen', d.anmerkungen);
+    if (d.tops && d.tops.length) {
+      document.getElementById('topList').innerHTML = '';
+      topCounter = 0;
+      d.tops.forEach(t => addTop(t));
+    }
+  } catch(e) { /* ignore */ }
+}
+
+function setField(id, val) {
+  const el = document.getElementById(id);
+  if (el && val !== undefined && val !== null) el.value = val;
+}
+
+// ────────────────────────────────────────────
+// TOP Management
+// ────────────────────────────────────────────
+function addTop(data) {
+  topCounter++;
+  const id = topCounter;
+  const container = document.getElementById('topList');
+
+  const div = document.createElement('div');
+  div.className = 'top-item';
+  div.dataset.topId = id;
+
+  div.innerHTML = `
+    <div class="top-header" draggable="true">
+      <span class="drag-handle">⠿</span>
+      <div class="top-num" id="topNum${id}">${container.children.length + 1}</div>
+      <input class="top-title-input" id="topTitel${id}"
+             type="text" placeholder="Titel des Tagesordnungspunkts..."
+             value="${esc(data?.titel||'')}">
+      <button class="btn btn-ghost btn-sm" onclick="removeTop(${id})" title="Entfernen">✕</button>
+    </div>
+    <div class="top-body">
+      <div>
+        <div class="top-section-label">💬 Notizen / Diskussion</div>
+        <textarea id="topNotizen${id}" placeholder="Gesprächsinhalt, Informationen, Diskussionspunkte...">${esc(data?.notizen||'')}</textarea>
+      </div>
+      <div>
+        <div class="top-section-label">✅ Beschlüsse / Ergebnisse</div>
+        <textarea id="topBeschluesse${id}" placeholder="Gefasste Beschlüsse und Entscheidungen...">${esc(data?.beschluesse||'')}</textarea>
+      </div>
+      <div>
+        <div class="top-section-label">📌 Aufgaben / Maßnahmen</div>
+        <table class="aufgaben-table" id="aufgabenTable${id}">
+          <thead>
+            <tr>
+              <th style="width:30%">Zuständig</th>
+              <th style="width:45%">Aufgabe / Maßnahme</th>
+              <th style="width:18%">Fällig bis</th>
+              <th style="width:7%"></th>
+            </tr>
+          </thead>
+          <tbody id="aufgabenBody${id}"></tbody>
+        </table>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addAufgabe(${id})">
+          + Aufgabe hinzufügen
+        </button>
+      </div>
+    </div>
+  `;
+  container.appendChild(div);
+  setupDrag(div);
+
+  if (data?.aufgaben) {
+    data.aufgaben.forEach(a => addAufgabe(id, a));
+  } else {
+    addAufgabe(id);
+  }
+  renumberTops();
+}
+
+function removeTop(id) {
+  const el = document.querySelector(`[data-top-id="${id}"]`);
+  if (el) el.remove();
+  renumberTops();
+}
+
+function renumberTops() {
+  const items = document.querySelectorAll('.top-item');
+  items.forEach((item, i) => {
+    const id = item.dataset.topId;
+    const numEl = document.getElementById('topNum' + id);
+    if (numEl) numEl.textContent = (i + 1) + '.';
+  });
+}
+
+// ────────────────────────────────────────────
+// Aufgaben
+// ────────────────────────────────────────────
+let aufgabenCounter = 0;
+
+function addAufgabe(topId, data) {
+  aufgabenCounter++;
+  const ac = aufgabenCounter;
+  const tbody = document.getElementById('aufgabenBody' + topId);
+  const tr = document.createElement('tr');
+  tr.dataset.aufgabeId = ac;
+  tr.innerHTML = `
+    <td><input type="text" id="aufgPerson${ac}" placeholder="Name" value="${esc(data?.person||'')}"></td>
+    <td><input type="text" id="aufgTask${ac}"   placeholder="Was ist zu tun?" value="${esc(data?.task||'')}"></td>
+    <td><input type="date" id="aufgDate${ac}"   value="${esc(data?.date||'')}"></td>
+    <td style="text-align:center">
+      <button class="btn btn-ghost btn-sm" onclick="removeAufgabe(${ac})" title="Zeile entfernen">✕</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function removeAufgabe(ac) {
+  const tr = document.querySelector(`tr[data-aufgabe-id="${ac}"]`);
+  if (tr) tr.remove();
+}
+
+// ────────────────────────────────────────────
+// Data Collection
+// ────────────────────────────────────────────
+function collectData() {
+  const tops = [];
+  document.querySelectorAll('.top-item').forEach(item => {
+    const id = item.dataset.topId;
+    const aufgaben = [];
+    item.querySelectorAll('tbody tr').forEach(tr => {
+      const ac = tr.dataset.aufgabeId;
+      const person = document.getElementById('aufgPerson'+ac)?.value?.trim() || '';
+      const task   = document.getElementById('aufgTask'+ac)?.value?.trim() || '';
+      const date   = document.getElementById('aufgDate'+ac)?.value || '';
+      if (person || task || date) aufgaben.push({person, task, date});
+    });
+    tops.push({
+      titel: document.getElementById('topTitel'+id)?.value?.trim() || `TOP ${id}`,
+      notizen: document.getElementById('topNotizen'+id)?.value?.trim() || '',
+      beschluesse: document.getElementById('topBeschluesse'+id)?.value?.trim() || '',
+      aufgaben
+    });
+  });
+
+  return {
+    titel: v('titel'),
+    typ: v('typ'),
+    datum: v('datum'),
+    uhrzeit_von: v('uhrzeit_von'),
+    uhrzeit_bis: v('uhrzeit_bis'),
+    ort: v('ort'),
+    protokollfuehrer: v('protokollfuehrer'),
+    teilnehmer: v('teilnehmer'),
+    abwesend: v('abwesend'),
+    verteiler: v('verteiler'),
+    naechster_termin: v('naechster_termin'),
+    anmerkungen: v('anmerkungen'),
+    tops
+  };
+}
+
+function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function formatDatum(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function formatUhrzeit(von, bis) {
+  if (!von && !bis) return '';
+  if (von && bis) return `${von} – ${bis} Uhr`;
+  return (von || bis) + ' Uhr';
+}
+
+// ────────────────────────────────────────────
+// PDF Export (jsPDF)
+// ────────────────────────────────────────────
+function exportPDF() {
+  const d = collectData();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+  const PAGE_W = 210;
+  const MARGIN = 20;
+  const CONTENT_W = PAGE_W - 2 * MARGIN;
+  let y = MARGIN;
+
+  const colors = {
+    primary: [58, 140, 92],
+    primaryDark: [37, 96, 64],
+    primaryLight: [232, 245, 238],
+    text: [30, 42, 59],
+    muted: [100, 116, 139],
+    border: [200, 221, 209],
+    white: [255, 255, 255],
+    success: [22, 163, 74],
+    warn: [217, 119, 6],
+    danger: [220, 38, 38],
+    topHeader: [242, 247, 244],
+  };
+
+  function checkNewPage(needed) {
+    if (y + needed > 280) {
+      doc.addPage();
+      y = MARGIN;
+      drawPageFooter();
+      return true;
+    }
+    return false;
+  }
+
+  function drawPageFooter() {
+    const pg = doc.internal.getCurrentPageInfo().pageNumber;
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.muted);
+    doc.text(`Seite ${pg}`, PAGE_W - MARGIN, 290, { align: 'right' });
+    doc.text('Protokoll – vertraulich', MARGIN, 290);
+    doc.setDrawColor(...colors.border);
+    doc.line(MARGIN, 287, PAGE_W - MARGIN, 287);
+  }
+
+  // ── Deckblatt-Header ──
+  doc.setFillColor(...colors.primary);
+  doc.rect(0, 0, PAGE_W, 48, 'F');
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text(d.titel || 'Protokoll', MARGIN, 22);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.typ, MARGIN, 32);
+  const datumStr = formatDatum(d.datum) + (d.uhrzeit_von || d.uhrzeit_bis ? '  |  ' + formatUhrzeit(d.uhrzeit_von, d.uhrzeit_bis) : '');
+  doc.text(datumStr, MARGIN, 42);
+  y = 56;
+
+  // ── Metadaten-Box ──
+  doc.setFillColor(...colors.primaryLight);
+  doc.setDrawColor(...colors.border);
+  doc.roundedRect(MARGIN, y, CONTENT_W, 34, 3, 3, 'FD');
+  y += 6;
+
+  const metaRows = [
+    ['Ort / Raum', d.ort || '–'],
+    ['Protokollführer/in', d.protokollfuehrer || '–'],
+  ];
+  const rightMeta = [
+    ['Teilnehmer', d.teilnehmer || '–'],
+    ['Entschuldigt', d.abwesend || '–'],
+  ];
+
+  metaRows.forEach((row, i) => {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.muted);
+    doc.text(row[0].toUpperCase(), MARGIN + 4, y + i * 11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...colors.text);
+    doc.setFontSize(9);
+    doc.text(row[1], MARGIN + 4, y + i * 11 + 5);
+  });
+
+  rightMeta.forEach((row, i) => {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.muted);
+    doc.text(row[0].toUpperCase(), MARGIN + CONTENT_W/2 + 4, y + i * 11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...colors.text);
+    doc.setFontSize(9);
+    const lines = doc.splitTextToSize(row[1], CONTENT_W/2 - 8);
+    doc.text(lines[0] || '–', MARGIN + CONTENT_W/2 + 4, y + i * 11 + 5);
+  });
+
+  y += 34;
+
+  if (d.verteiler) {
+    y += 4;
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...colors.muted);
+    doc.text('Verteiler: ' + d.verteiler, MARGIN, y);
+    y += 6;
+  }
+
+  y += 6;
+  doc.setDrawColor(...colors.border);
+  doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+  y += 8;
+
+  // ── TOPs ──
+  d.tops.forEach((top, idx) => {
+    checkNewPage(22);
+
+    // TOP-Header
+    doc.setFillColor(...colors.topHeader);
+    doc.setDrawColor(...colors.border);
+    doc.roundedRect(MARGIN, y, CONTENT_W, 10, 2, 2, 'FD');
+
+    doc.setFillColor(...colors.primary);
+    doc.roundedRect(MARGIN, y, 16, 10, 2, 2, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(`${idx + 1}.`, MARGIN + 8, y + 6.5, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor(...colors.text);
+    doc.text(top.titel || `TOP ${idx + 1}`, MARGIN + 20, y + 6.8);
+    y += 14;
+
+    // Notizen
+    if (top.notizen) {
+      checkNewPage(16);
+      drawSection(doc, 'Notizen / Diskussion', top.notizen, colors, MARGIN, CONTENT_W, y);
+      const lines = doc.splitTextToSize(top.notizen, CONTENT_W - 20);
+      y += 8 + lines.length * 4.5 + 8;
+    }
+
+    // Beschlüsse
+    if (top.beschluesse) {
+      checkNewPage(16);
+      drawBeschluesse(doc, top.beschluesse, colors, MARGIN, CONTENT_W, y);
+      const lines = doc.splitTextToSize(top.beschluesse, CONTENT_W - 24);
+      y += 8 + lines.length * 4.5 + 8;
+    }
+
+    // Aufgaben
+    const aufg = top.aufgaben.filter(a => a.person || a.task);
+    if (aufg.length > 0) {
+      checkNewPage(24);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...colors.muted);
+      doc.text('AUFGABEN / MASSNAHMEN', MARGIN, y + 4);
+      y += 7;
+
+      doc.autoTable({
+        startY: y,
+        margin: { left: MARGIN, right: MARGIN },
+        tableWidth: CONTENT_W,
+        head: [['Zuständig', 'Aufgabe / Maßnahme', 'Fällig bis']],
+        body: aufg.map(a => [a.person, a.task, formatDatum(a.date) || '–']),
+        styles: { fontSize: 9, cellPadding: 3, textColor: colors.text },
+        headStyles: {
+          fillColor: colors.primary, textColor: [255, 255, 255],
+          fontStyle: 'bold', fontSize: 8
+        },
+        alternateRowStyles: { fillColor: [248, 250, 253] },
+        columnStyles: {
+          0: { cellWidth: CONTENT_W * 0.28 },
+          1: { cellWidth: CONTENT_W * 0.54 },
+          2: { cellWidth: CONTENT_W * 0.18, halign: 'center' },
+        },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    y += 4;
+    doc.setDrawColor(...colors.border);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+    doc.setLineDashPattern([], 0);
+    y += 8;
+  });
+
+  // ── Abschluss ──
+  if (d.naechster_termin || d.anmerkungen) {
+    checkNewPage(30);
+    doc.setFillColor(...colors.primaryLight);
+    doc.setDrawColor(...colors.primary);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(MARGIN, y, CONTENT_W, 8, 2, 2, 'FD');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.primaryDark);
+    doc.text('Abschluss', MARGIN + 4, y + 5.5);
+    y += 12;
+
+    if (d.naechster_termin) {
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...colors.muted);
+      doc.text('NÄCHSTER TERMIN', MARGIN, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...colors.text);
+      doc.text(d.naechster_termin, MARGIN, y);
+      y += 8;
+    }
+    if (d.anmerkungen) {
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...colors.muted);
+      doc.text('ANMERKUNGEN', MARGIN, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...colors.text);
+      const lines = doc.splitTextToSize(d.anmerkungen, CONTENT_W);
+      doc.text(lines, MARGIN, y);
+      y += lines.length * 4.5 + 6;
+    }
+  }
+
+  // ── Unterschrift ──
+  checkNewPage(30);
+  y += 10;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...colors.muted);
+  doc.text('Protokollführer/in:', MARGIN, y);
+  doc.setDrawColor(...colors.border);
+  doc.line(MARGIN + 36, y, MARGIN + 36 + 60, y);
+  doc.text(d.protokollfuehrer || '', MARGIN + 38, y - 1);
+  doc.text('Datum: ' + (formatDatum(d.datum) || '___________'), PAGE_W - MARGIN - 50, y);
+
+  // Footer alle Seiten
+  const total = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.muted);
+    doc.text(`Seite ${i} / ${total}`, PAGE_W - MARGIN, 290, { align: 'right' });
+    doc.text('Protokoll – vertraulich', MARGIN, 290);
+    doc.setDrawColor(...colors.border);
+    doc.line(MARGIN, 287, PAGE_W - MARGIN, 287);
+  }
+
+  const filename = (d.titel ? d.titel.replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '') : 'Protokoll')
+    + '_' + (d.datum || new Date().toISOString().split('T')[0]) + '.pdf';
+  doc.save(filename);
+  toast('PDF gespeichert: ' + filename);
+}
+
+function drawSection(doc, label, text, colors, margin, contentW, startY) {
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...colors.muted);
+  doc.text(label.toUpperCase(), margin, startY + 4);
+  const lines = doc.splitTextToSize(text, contentW - 12);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...colors.text);
+  doc.text(lines, margin + 4, startY + 10);
+}
+
+function drawBeschluesse(doc, text, colors, margin, contentW, startY) {
+  doc.setFillColor(232, 245, 238);
+  doc.setDrawColor(...colors.primary);
+  doc.setLineWidth(0.3);
+  const lines = doc.splitTextToSize(text, contentW - 24);
+  const boxH = Math.max(10, lines.length * 4.5 + 8);
+  doc.roundedRect(margin, startY, contentW, boxH, 2, 2, 'FD');
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...colors.primaryDark);
+  doc.text('BESCHLUESSE / ERGEBNISSE', margin + 4, startY + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(30, 42, 59);
+  doc.text(lines, margin + 4, startY + 10);
+}
+
+// ────────────────────────────────────────────
+// Word Export (docx.js)
+// ────────────────────────────────────────────
+async function exportWord() {
+  const d = collectData();
+
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    HeadingLevel, AlignmentType, BorderStyle, WidthType, ShadingType,
+    Header, Footer, PageNumber, VerticalAlign,
+  } = docx;
+
+  const CONTENT_W = 9026; // DXA A4 mit 2cm Rand
+
+  const borderDef = { style: BorderStyle.SINGLE, size: 1, color: 'D1D9E6' };
+  const borders = { top: borderDef, bottom: borderDef, left: borderDef, right: borderDef };
+
+  function t(text, opts = {}) {
+    return new TextRun({ text: text || '', font: 'Calibri', ...opts });
+  }
+  function p(children, opts = {}) {
+    return new Paragraph({ children: Array.isArray(children) ? children : [children], ...opts });
+  }
+  function h1(text) {
+    return p([t(text, { size: 28, bold: true, color: '3A8C5C' })], {
+      spacing: { before: 160, after: 80 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '3A8C5C', space: 4 } }
+    });
+  }
+  function h2(text) {
+    return p([t(text, { size: 22, bold: true, color: '256040' })], {
+      spacing: { before: 140, after: 60 }
+    });
+  }
+  function sectionLabel(text) {
+    return p([t(text, { size: 16, bold: true, color: '64748B', allCaps: true })], {
+      spacing: { before: 120, after: 60 }
+    });
+  }
+  function bodyText(text) {
+    return p([t(text, { size: 20, color: '1E2A3B' })], {
+      spacing: { before: 40, after: 60 }
+    });
+  }
+  function emptyLine() {
+    return p([t('')], { spacing: { before: 60, after: 60 } });
+  }
+
+  function metaRow(label, value) {
+    return new TableRow({
+      children: [
+        new TableCell({
+          width: { size: CONTENT_W * 0.3, type: WidthType.DXA },
+          borders,
+          margins: { top: 60, bottom: 60, left: 100, right: 100 },
+          shading: { fill: 'E8F5EE', type: ShadingType.CLEAR },
+          children: [p([t(label, { size: 18, bold: true, color: '64748B', allCaps: true })])],
+        }),
+        new TableCell({
+          width: { size: CONTENT_W * 0.7, type: WidthType.DXA },
+          borders,
+          margins: { top: 60, bottom: 60, left: 100, right: 100 },
+          children: [p([t(value || '–', { size: 18, color: '1E2A3B' })])],
+        }),
+      ],
+    });
+  }
+
+  const metaTable = new Table({
+    width: { size: CONTENT_W, type: WidthType.DXA },
+    columnWidths: [Math.round(CONTENT_W * 0.3), Math.round(CONTENT_W * 0.7)],
+    rows: [
+      metaRow('Besprechungstyp', d.typ),
+      metaRow('Datum', formatDatum(d.datum)),
+      metaRow('Uhrzeit', formatUhrzeit(d.uhrzeit_von, d.uhrzeit_bis) || '–'),
+      metaRow('Ort / Raum', d.ort),
+      metaRow('Protokollführer/in', d.protokollfuehrer),
+      metaRow('Teilnehmer', d.teilnehmer),
+      ...(d.abwesend ? [metaRow('Entschuldigt', d.abwesend)] : []),
+      ...(d.verteiler ? [metaRow('Verteiler', d.verteiler)] : []),
+    ],
+  });
+
+  const topChildren = [];
+  d.tops.forEach((top, idx) => {
+    topChildren.push(h2(`${idx + 1}. ${top.titel || 'Tagesordnungspunkt'}`));
+
+    if (top.notizen) {
+      topChildren.push(sectionLabel('Notizen / Diskussion'));
+      top.notizen.split('\n').forEach(line => topChildren.push(bodyText(line)));
+    }
+
+    if (top.beschluesse) {
+      topChildren.push(sectionLabel('Beschlüsse / Ergebnisse'));
+      top.beschluesse.split('\n').forEach(line =>
+        topChildren.push(p([t(line, { size: 20, color: '166534', bold: true })], {
+          shading: { fill: 'F0FDF4', type: ShadingType.CLEAR },
+          spacing: { before: 40, after: 40 },
+          indent: { left: 200 },
+          border: { left: { style: BorderStyle.SINGLE, size: 6, color: '16A34A', space: 8 } }
+        }))
+      );
+    }
+
+    const aufg = top.aufgaben.filter(a => a.person || a.task);
+    if (aufg.length > 0) {
+      topChildren.push(sectionLabel('Aufgaben / Maßnahmen'));
+
+      const headerRow = new TableRow({
+        tableHeader: true,
+        children: [
+          ['Zuständig', 0.26], ['Aufgabe / Maßnahme', 0.54], ['Fällig bis', 0.20]
+        ].map(([label, w]) => new TableCell({
+          width: { size: CONTENT_W * w, type: WidthType.DXA },
+          shading: { fill: '3A8C5C', type: ShadingType.CLEAR },
+          borders,
+          margins: { top: 60, bottom: 60, left: 100, right: 100 },
+          children: [p([t(label, { size: 18, bold: true, color: 'FFFFFF', allCaps: true })])],
+        }))
+      });
+
+      const dataRows = aufg.map((a, ri) => new TableRow({
+        children: [
+          [a.person, 0.26], [a.task, 0.54], [formatDatum(a.date) || '–', 0.20]
+        ].map(([val, w]) => new TableCell({
+          width: { size: CONTENT_W * w, type: WidthType.DXA },
+          borders,
+          margins: { top: 50, bottom: 50, left: 100, right: 100 },
+          shading: { fill: ri % 2 === 0 ? 'F8FAFD' : 'FFFFFF', type: ShadingType.CLEAR },
+          children: [p([t(val || '–', { size: 18, color: '1E2A3B' })])],
+        }))
+      }));
+
+      topChildren.push(new Table({
+        width: { size: CONTENT_W, type: WidthType.DXA },
+        columnWidths: [
+          Math.round(CONTENT_W * 0.26),
+          Math.round(CONTENT_W * 0.54),
+          Math.round(CONTENT_W * 0.20),
+        ],
+        rows: [headerRow, ...dataRows],
+      }));
+    }
+
+    topChildren.push(emptyLine());
+  });
+
+  const abschlussChildren = [];
+  if (d.naechster_termin) {
+    abschlussChildren.push(sectionLabel('Nächster Termin'));
+    abschlussChildren.push(bodyText(d.naechster_termin));
+  }
+  if (d.anmerkungen) {
+    abschlussChildren.push(sectionLabel('Anmerkungen'));
+    abschlussChildren.push(bodyText(d.anmerkungen));
+  }
+
+  const doc2 = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }
+        }
+      },
+      headers: {
+        default: new Header({
+          children: [
+            p([
+              t(d.titel || 'Protokoll', { size: 18, bold: true, color: '3A8C5C' }),
+              t('  |  ' + (d.typ || ''), { size: 18, color: '64748B' }),
+              t('\t' + formatDatum(d.datum), { size: 18, color: '64748B' }),
+            ], {
+              tabStops: [{ type: 'right', position: 9026 }],
+              border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D1D9E6', space: 4 } }
+            })
+          ]
+        })
+      },
+      footers: {
+        default: new Footer({
+          children: [
+            p([
+              t('Protokoll – vertraulich', { size: 16, color: '94A3B8' }),
+              t('\tSeite ', { size: 16, color: '94A3B8' }),
+              new TextRun({ children: [PageNumber.CURRENT], font: 'Calibri', size: 16, color: '94A3B8' }),
+              t(' / ', { size: 16, color: '94A3B8' }),
+              new TextRun({ children: [PageNumber.TOTAL_PAGES], font: 'Calibri', size: 16, color: '94A3B8' }),
+            ], {
+              tabStops: [{ type: 'right', position: 9026 }],
+              border: { top: { style: BorderStyle.SINGLE, size: 1, color: 'D1D9E6', space: 4 } }
+            })
+          ]
+        })
+      },
+      children: [
+        // Titel
+        p([t(d.titel || 'Protokoll', { size: 40, bold: true, color: 'FFFFFF' })], {
+          shading: { fill: '3A8C5C', type: ShadingType.CLEAR },
+          spacing: { before: 200, after: 60 },
+          indent: { left: 200, right: 200 },
+        }),
+        p([t(d.typ || '', { size: 22, color: 'A8D5BB' })], {
+          shading: { fill: '3A8C5C', type: ShadingType.CLEAR },
+          spacing: { before: 0, after: 200 },
+          indent: { left: 200, right: 200 },
+        }),
+
+        emptyLine(),
+        h1('Besprechungsdetails'),
+        metaTable,
+
+        emptyLine(),
+        h1('Tagesordnung'),
+        ...topChildren,
+
+        ...(abschlussChildren.length ? [h1('Abschluss'), ...abschlussChildren] : []),
+
+        emptyLine(),
+        p([
+          t('Protokoll erstellt von: ', { size: 18, color: '64748B' }),
+          t(d.protokollfuehrer || '________________', { size: 18, bold: true, color: '1E2A3B' }),
+          t('   Datum: ', { size: 18, color: '64748B' }),
+          t(formatDatum(d.datum) || '________________', { size: 18, color: '1E2A3B' }),
+        ], { spacing: { before: 160 } }),
+      ]
+    }]
+  });
+
+  const buffer = await Packer.toBlob(doc2);
+  const filename = (d.titel ? d.titel.replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '') : 'Protokoll')
+    + '_' + (d.datum || new Date().toISOString().split('T')[0]) + '.docx';
+  saveAs(buffer, filename);
+  toast('Word-Dokument gespeichert: ' + filename);
+}
+
+// ────────────────────────────────────────────
+// Utils
+// ────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function clearAll() {
+  if (!confirm('Alle Eingaben löschen?')) return;
+  ['titel','typ','datum','uhrzeit_von','uhrzeit_bis','ort','protokollfuehrer',
+   'teilnehmer','abwesend','verteiler','naechster_termin','anmerkungen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.tagName === 'SELECT' ? el.options[0].value : '';
+  });
+  document.getElementById('datum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('topList').innerHTML = '';
+  topCounter = 0; aufgabenCounter = 0;
+  addTop();
+  localStorage.removeItem('protokoll_data');
+  toast('Alle Eingaben wurden zurückgesetzt.');
+}
+
+// ────────────────────────────────────────────
+// Drag & Drop (Reihenfolge der TOPs)
+// ────────────────────────────────────────────
+let dragSrc = null;
+
+function setupDrag(topDiv) {
+  topDiv.addEventListener('dragstart', e => {
+    dragSrc = topDiv;
+    e.dataTransfer.effectAllowed = 'move';
+    topDiv.style.opacity = '0.5';
+  });
+  topDiv.addEventListener('dragend', () => {
+    topDiv.style.opacity = '';
+    document.querySelectorAll('.top-item').forEach(el => el.classList.remove('drag-over'));
+  });
+  topDiv.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragSrc !== topDiv) topDiv.classList.add('drag-over');
+  });
+  topDiv.addEventListener('dragleave', () => topDiv.classList.remove('drag-over'));
+  topDiv.addEventListener('drop', e => {
+    e.preventDefault();
+    topDiv.classList.remove('drag-over');
+    if (dragSrc && dragSrc !== topDiv) {
+      const list = document.getElementById('topList');
+      const allItems = [...list.children];
+      const srcIdx = allItems.indexOf(dragSrc);
+      const dstIdx = allItems.indexOf(topDiv);
+      if (srcIdx < dstIdx) list.insertBefore(dragSrc, topDiv.nextSibling);
+      else list.insertBefore(dragSrc, topDiv);
+      renumberTops();
+    }
+  });
+}
+</script>
+</body>
+</html>
