@@ -305,20 +305,21 @@ input[type=range]{width:100%;accent-color:var(--p1)}
     <div class="ct">🔍 Kinder-Suche</div>
     <div class="cd">Suche sicher im Internet! Alle Ergebnisse werden für Kinder gefiltert.</div>
     <div class="sarea">
-      <form class="sform" onsubmit="doSearch(event)">
-        <input class="sinp" id="sinp" type="text" placeholder="Was möchtest du wissen? z.B. 'Wie malen Impressionisten?'">
+      <!-- fragFINN: action + target="_blank" — kein Popup-Blocker-Problem -->
+      <form id="sform-el" class="sform" action="https://www.fragfinn.de/" method="get" target="_blank">
+        <input class="sinp" id="sinp" name="s" type="text" placeholder="Was möchtest du wissen? z.B. 'Impressionismus Farben'">
         <button type="submit" class="sbtn">🔍 Suchen</button>
       </form>
 
       <div style="margin-bottom:18px">
         <div style="font-weight:700;margin-bottom:10px">🌟 Beliebte Themen:</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <button class="btn bs" onclick="qs('Farben mischen für Kinder')">🎨 Farben mischen</button>
-          <button class="btn bs" onclick="qs('Impressionismus einfach erklärt Kinder')">🖼️ Impressionismus</button>
-          <button class="btn bs" onclick="qs('Van Gogh Bilder Kinder')">⭐ Van Gogh</button>
-          <button class="btn bs" onclick="qs('Wie entsteht ein Regenbogen')">🌈 Regenbogen</button>
-          <button class="btn bs" onclick="qs('Tiere malen Anleitung Kinder')">🦋 Tiere malen</button>
-          <button class="btn bs" onclick="qs('Picasso Kubismus Kinder erklärt')">🎭 Picasso</button>
+          <button type="button" class="btn bs" onclick="qs('Farben mischen')">🎨 Farben mischen</button>
+          <button type="button" class="btn bs" onclick="qs('Impressionismus')">🖼️ Impressionismus</button>
+          <button type="button" class="btn bs" onclick="qs('Van Gogh')">⭐ Van Gogh</button>
+          <button type="button" class="btn bs" onclick="qs('Regenbogen')">🌈 Regenbogen</button>
+          <button type="button" class="btn bs" onclick="qs('Tiere malen')">🦋 Tiere malen</button>
+          <button type="button" class="btn bs" onclick="qs('Picasso')">🎭 Picasso</button>
         </div>
       </div>
 
@@ -343,7 +344,7 @@ input[type=range]{width:100%;accent-color:var(--p1)}
           <span class="qi">🌿</span><span class="qt">Naturdetektive</span><span class="qd">Natur entdecken</span>
         </a>
       </div>
-      <div class="safe">🛡️ <strong>Sicher surfen:</strong> Diese Suche verwendet <strong>Kiddle.co</strong> — eine speziell für Kinder gefilterte Suchmaschine. Unangemessene Inhalte werden automatisch blockiert.</div>
+      <div class="safe">🛡️ <strong>Sicher surfen:</strong> Diese Suche verwendet <strong>fragFINN.de</strong> — die geprüfte Kindersuchmaschine des Bundesverbands Kinder- und Jugendmedien (BKJ). Nur geprüfte, kindgerechte Seiten werden angezeigt.</div>
     </div>
   </div>
 </section>
@@ -835,16 +836,11 @@ function checkAns(btn, correct) {
 
 // ══════════════════════════════
 // KINDER-SUCHE
+// fragFINN-Formular: natives submit, kein window.open → kein Popup-Blocker
 // ══════════════════════════════
-function doSearch(e) {
-  e.preventDefault();
-  const q = document.getElementById('sinp').value.trim();
-  if (!q) return;
-  window.open('https://www.kiddle.co/s.php?q=' + encodeURIComponent(q), '_blank', 'noopener,noreferrer');
-}
 function qs(q) {
   document.getElementById('sinp').value = q;
-  window.open('https://www.kiddle.co/s.php?q=' + encodeURIComponent(q), '_blank', 'noopener,noreferrer');
+  document.getElementById('sform-el').submit();
 }
 </script>
 </body>
