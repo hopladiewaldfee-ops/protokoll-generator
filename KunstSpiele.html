@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎨 KunstSpiele — Farben &amp; Fantasie</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFF8F0;--card:#fff;--text:#2D2D2D;--muted:#666;
+  --p1:#667eea;--p2:#764ba2;--r:16px;
+  --sh:0 4px 20px rgba(0,0,0,.1);
+  --font:'Nunito',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:22px 20px;text-align:center;overflow:hidden;position:relative}
+.hdr::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.15),transparent 60%);pointer-events:none}
+.hdr h1{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:900;letter-spacing:-1px;position:relative}
+.hdr p{font-size:1rem;opacity:.88;margin-top:4px;position:relative}
+
+/* NAV */
+.nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.nb{padding:9px 18px;border:none;border-radius:50px;cursor:pointer;font-family:var(--font);font-size:.9rem;font-weight:700;background:#f0f0f0;color:var(--text);transition:all .25s}
+.nb:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.nb.on{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 4px 15px rgba(102,126,234,.4)}
+
+/* LAYOUT */
+.wrap{max-width:1020px;margin:28px auto;padding:0 18px}
+.sec{display:none}.sec.on{display:block}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);padding:24px;box-shadow:var(--sh);margin-bottom:20px}
+.ct{font-size:1.35rem;font-weight:800;margin-bottom:6px}
+.cd{color:var(--muted);margin-bottom:18px;font-size:.93rem;line-height:1.5}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;font-family:var(--font);font-size:.88rem;font-weight:700;transition:all .2s}
+.bp{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff}
+.bp:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(102,126,234,.4)}
+.bs{background:#f0f0f0;color:var(--text)}
+.bs:hover{background:#e2e2e2}
+.bs.sel{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff}
+
+/* ── MEMORY ── */
+.mctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.mstat{font-size:.93rem;font-weight:700;color:var(--p1);background:rgba(102,126,234,.1);padding:8px 16px;border-radius:20px}
+.mgrid{display:grid;gap:10px;justify-content:center}
+.mgrid.easy{grid-template-columns:repeat(4,minmax(70px,110px))}
+.mgrid.med{grid-template-columns:repeat(4,minmax(70px,110px))}
+.mgrid.hard{grid-template-columns:repeat(6,minmax(60px,90px))}
+.mc{aspect-ratio:1;cursor:pointer;perspective:600px}
+.mci{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .45s;border-radius:12px}
+.mc.flip .mci,.mc.done .mci{transform:rotateY(180deg)}
+.mc.done .mcf{box-shadow:0 0 0 4px #6BCB77,0 4px 15px rgba(107,203,119,.35)}
+.mcb,.mcf{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.mcb{background:linear-gradient(135deg,var(--p1),var(--p2));box-shadow:0 4px 15px rgba(0,0,0,.18);font-size:1.6rem}
+.mcf{transform:rotateY(180deg);flex-direction:column;gap:3px;font-size:.7rem;font-weight:700;color:rgba(0,0,0,.7);text-shadow:0 1px 2px rgba(255,255,255,.8);box-shadow:0 4px 15px rgba(0,0,0,.15)}
+
+/* ── MIXER ── */
+.mxpal{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin-bottom:24px}
+.mxc{width:68px;height:68px;border-radius:50%;cursor:pointer;border:4px solid transparent;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2);position:relative;flex-shrink:0}
+.mxc:hover{transform:scale(1.1)}
+.mxc.sel{border-color:#333;transform:scale(1.18);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.mxc span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:.62rem;font-weight:700;white-space:nowrap;color:var(--text)}
+.mxrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.mxball{width:90px;height:90px;border-radius:50%;background:#ddd;box-shadow:0 4px 15px rgba(0,0,0,.2);transition:background .5s}
+.mxres{width:120px;height:120px;border-radius:50%;background:#eee;box-shadow:0 6px 25px rgba(0,0,0,.22);transition:background .5s;margin:0 auto}
+.mxarr{font-size:2rem}
+.fact-card{background:linear-gradient(135deg,#f5f7fa,#c3cfe2);border-radius:12px;padding:18px;font-size:.9rem;line-height:1.6;color:var(--text)}
+
+/* ── STUDIO ── */
+.stwrap{display:flex;gap:18px;flex-wrap:wrap}
+.sttools{display:flex;flex-direction:column;gap:10px;min-width:148px}
+.tgrp{background:#f8f8f8;border-radius:12px;padding:12px}
+.tgtit{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.tbtn{width:40px;height:40px;border:2px solid transparent;border-radius:8px;cursor:pointer;font-size:1.2rem;background:#fff;transition:all .2s;display:inline-flex;align-items:center;justify-content:center}
+.tbtn:hover{background:#e8e8e8}
+.tbtn.on{border-color:var(--p1);background:rgba(102,126,234,.12)}
+input[type=range]{width:100%;accent-color:var(--p1)}
+.swgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.sw{aspect-ratio:1;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.sw:hover{transform:scale(1.1)}
+.sw.on{border-color:#333;transform:scale(1.15)}
+#paintCanvas{border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);cursor:crosshair;background:#fff;max-width:100%;touch-action:none;display:block}
+.cact{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.taskbox{background:linear-gradient(135deg,#ffecd2,#fcb69f);border-radius:12px;padding:15px;margin-top:14px}
+.taskbox h4{font-size:.95rem;font-weight:800;margin-bottom:4px}
+
+/* ── PERCEPTION ── */
+.pgame{text-align:center}
+.pscore{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.pbadge{padding:9px 18px;border-radius:20px;font-weight:700;font-size:.9rem}
+.pbg{background:rgba(107,203,119,.18);color:#2d8a3e}
+.pbr{background:rgba(255,107,107,.18);color:#cc3333}
+.pbl{background:rgba(102,126,234,.18);color:#3a5fc8}
+.cshow{width:180px;height:180px;border-radius:20px;margin:18px auto;box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .5s}
+.cdown{font-size:2.8rem;font-weight:900;color:var(--p2);height:56px;display:flex;align-items:center;justify-content:center}
+.ogrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:380px;margin:18px auto}
+.obtn{height:95px;border:none;border-radius:12px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.15);transition:all .2s;border:3px solid transparent}
+.obtn:hover{transform:scale(1.05)}
+.obtn.ok{border-color:#6BCB77!important;box-shadow:0 0 0 4px rgba(107,203,119,.35)!important}
+.obtn.no{border-color:#FF6B6B!important;opacity:.6}
+
+/* ── SEARCH ── */
+.sarea{max-width:620px;margin:0 auto}
+.sform{display:flex;gap:10px;margin-bottom:22px}
+.sinp{flex:1;padding:13px 20px;border:2px solid #e0e0e0;border-radius:50px;font-family:var(--font);font-size:.98rem;outline:none;transition:border-color .3s}
+.sinp:focus{border-color:var(--p1)}
+.sbtn{padding:13px 22px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;border:none;border-radius:50px;cursor:pointer;font-family:var(--font);font-size:.98rem;font-weight:700;transition:all .2s}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(102,126,234,.4)}
+.qlinks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;margin-bottom:22px}
+.ql{background:#fff;border-radius:12px;padding:14px;text-align:center;text-decoration:none;color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.08);transition:all .3s;display:block}
+.ql:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+.ql .qi{font-size:1.8rem;margin-bottom:6px;display:block}
+.ql .qt{font-weight:700;font-size:.88rem}
+.ql .qd{font-size:.73rem;color:var(--muted);margin-top:3px}
+.safe{background:linear-gradient(135deg,#a8edea,#fed6e3);border-radius:12px;padding:14px;font-size:.83rem;text-align:center;line-height:1.5}
+
+/* WIN */
+.win{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999}
+.win.on{display:flex}
+.winc{background:#fff;border-radius:24px;padding:36px;text-align:center;max-width:390px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+.we{font-size:3.8rem;margin-bottom:12px}
+.wt{font-size:1.9rem;font-weight:900;color:var(--p1);margin-bottom:8px}
+.wm{color:var(--muted);margin-bottom:22px;font-size:.93rem;line-height:1.5}
+
+@media(max-width:600px){
+  .mgrid.hard{grid-template-columns:repeat(4,minmax(55px,80px))}
+  .stwrap{flex-direction:column}
+  .sttools{flex-direction:row;flex-wrap:wrap;min-width:unset}
+  .tgrp{flex:1;min-width:130px}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <h1>🎨 KunstSpiele</h1>
+  <p>Farben entdecken · Kreativ sein · Die Welt erkunden</p>
+</header>
+
+<nav class="nav">
+  <button class="nb on" onclick="show('memory',this)">🎴 Farbgedächtnis</button>
+  <button class="nb" onclick="show('mixer',this)">🎨 Farbmischer</button>
+  <button class="nb" onclick="show('studio',this)">✏️ Mal-Studio</button>
+  <button class="nb" onclick="show('percept',this)">👁️ Farbwahrnehmung</button>
+  <button class="nb" onclick="show('search',this)">🔍 Kinder-Suche</button>
+</nav>
+
+<main class="wrap">
+
+<!-- ══════════════════════════════════════
+     FARBGEDÄCHTNIS
+══════════════════════════════════════ -->
+<section id="memory" class="sec on">
+  <div class="card">
+    <div class="ct">🎴 Farbgedächtnis-Spiel</div>
+    <div class="cd">Finde die passenden Farbpaare! Klicke zwei Karten um — stimmen sie überein, bleiben sie sichtbar.</div>
+    <div class="mctrl">
+      <button class="btn bs sel" id="d-easy" onclick="setDiff('easy')">Leicht (8 Paare)</button>
+      <button class="btn bs" id="d-med" onclick="setDiff('med')">Mittel (12 Paare)</button>
+      <button class="btn bs" id="d-hard" onclick="setDiff('hard')">Schwer (16 Paare)</button>
+      <button class="btn bp" onclick="startMemory()">▶ Neues Spiel</button>
+      <div class="mstat">⏱ <span id="mtime">0:00</span> &nbsp;🎯 <span id="mmoves">0</span> Züge</div>
+    </div>
+    <div class="mgrid easy" id="mgrid"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FARBMISCHER
+══════════════════════════════════════ -->
+<section id="mixer" class="sec">
+  <div class="card">
+    <div class="ct">🎨 Farbmischer — Male wie ein Künstler!</div>
+    <div class="cd">Wähle zwei Farben und entdecke, was beim Mischen entsteht — genau wie ein echter Maler!</div>
+    <div class="mxpal" id="mxpal"></div>
+    <div id="mxhint" style="text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:10px">👆 Wähle eine erste Farbe!</div>
+    <div class="mxrow">
+      <div>
+        <div class="mxball" id="mx1"></div>
+        <div style="text-align:center;font-size:.75rem;margin-top:6px;font-weight:700;color:var(--muted)" id="mx1n">—</div>
+      </div>
+      <div class="mxarr">➕</div>
+      <div>
+        <div class="mxball" id="mx2"></div>
+        <div style="text-align:center;font-size:.75rem;margin-top:6px;font-weight:700;color:var(--muted)" id="mx2n">—</div>
+      </div>
+      <div class="mxarr">🟰</div>
+      <div>
+        <div class="mxres" id="mxres"></div>
+        <div style="text-align:center;margin-top:8px">
+          <div id="mxrname" style="font-size:1.05rem;font-weight:800"></div>
+          <div id="mxrfact" style="color:var(--muted);font-size:.78rem;max-width:175px;margin:4px auto;line-height:1.4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct" style="font-size:1.05rem">🌈 Wusstest du das?</div>
+    <div class="fact-card" id="colorfact"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     MAL-STUDIO
+══════════════════════════════════════ -->
+<section id="studio" class="sec">
+  <div class="card">
+    <div class="ct">✏️ Mal-Studio</div>
+    <div class="cd">Dein digitales Atelier! Male, zeichne und erschaffe dein Kunstwerk.</div>
+    <div class="stwrap">
+
+      <div class="sttools">
+        <div class="tgrp">
+          <div class="tgtit">Werkzeug</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="tbtn on" id="tl-brush" onclick="setTool('brush')" title="Pinsel">🖌️</button>
+            <button class="tbtn" id="tl-eraser" onclick="setTool('eraser')" title="Radierer">🧹</button>
+            <button class="tbtn" id="tl-fill" onclick="setTool('fill')" title="Farbeimer">🪣</button>
+          </div>
+        </div>
+        <div class="tgrp">
+          <div class="tgtit">Pinselgröße</div>
+          <input type="range" id="bsize" min="1" max="40" value="8" oninput="brushSz=+this.value;document.getElementById('bsdisp').textContent=brushSz+'px'">
+          <div id="bsdisp" style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:3px">8px</div>
+        </div>
+        <div class="tgrp">
+          <div class="tgtit">Deckkraft</div>
+          <input type="range" id="bopa" min="5" max="100" value="100" oninput="brushOpa=this.value/100;document.getElementById('opadisp').textContent=this.value+'%'">
+          <div id="opadisp" style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:3px">100%</div>
+        </div>
+        <div class="tgrp">
+          <div class="tgtit">Farben</div>
+          <div class="swgrid" id="swgrid"></div>
+          <div style="margin-top:9px">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Aktiv:</div>
+            <div id="actcol" style="width:38px;height:38px;border-radius:8px;border:2px solid #ddd;background:#E74C3C"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:280px">
+        <canvas id="paintCanvas" width="580" height="430"></canvas>
+        <div class="cact">
+          <button class="btn bs" onclick="clearCanvas()">🗑️ Löschen</button>
+          <button class="btn bp" onclick="downloadCanvas()">💾 Speichern</button>
+          <button class="btn bs" onclick="newTask()">💡 Neue Aufgabe</button>
+        </div>
+        <div class="taskbox">
+          <h4>🎯 Mal-Aufgabe</h4>
+          <p id="tasktext" style="font-size:.88rem;line-height:1.5;margin-top:4px"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FARBWAHRNEHMUNG
+══════════════════════════════════════ -->
+<section id="percept" class="sec">
+  <div class="card">
+    <div class="ct">👁️ Farbwahrnehmung</div>
+    <div class="cd">Wie gut erkennst du Farben? Merke dir die Farbe und finde sie anschließend!</div>
+    <div class="pgame">
+      <div class="pscore">
+        <div class="pbadge pbg">✅ Richtig: <span id="pok">0</span></div>
+        <div class="pbadge pbr">❌ Falsch: <span id="pno">0</span></div>
+        <div class="pbadge pbl">⭐ Level: <span id="plv">1</span></div>
+      </div>
+      <div id="pstart">
+        <button class="btn bp" style="font-size:1rem;padding:14px 34px" onclick="startPercept()">🎮 Spiel starten!</button>
+      </div>
+      <div id="pshow" style="display:none">
+        <p style="color:var(--muted);font-size:.93rem">Merke dir diese Farbe!</p>
+        <div class="cshow" id="ptarget"></div>
+        <div class="cdown" id="pcount">3</div>
+      </div>
+      <div id="pguess" style="display:none">
+        <p style="font-size:1rem;font-weight:700;margin-bottom:4px">Welche Farbe hast du gesehen?</p>
+        <p style="color:var(--muted);font-size:.83rem;margin-bottom:14px">Tippe auf die richtige Farbe!</p>
+        <div class="ogrid" id="ogrid"></div>
+      </div>
+      <div id="presult" style="display:none;padding:20px 10px">
+        <div style="font-size:3.2rem" id="remi"></div>
+        <div style="font-size:1.15rem;font-weight:800;margin:9px 0" id="rtxt"></div>
+        <div style="color:var(--muted);margin-bottom:18px;font-size:.9rem" id="rdet"></div>
+        <button class="btn bp" onclick="nextRound()">➡️ Weiter</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     KINDER-SUCHE
+══════════════════════════════════════ -->
+<section id="search" class="sec">
+  <div class="card">
+    <div class="ct">🔍 Kinder-Suche</div>
+    <div class="cd">Suche sicher im Internet! Alle Ergebnisse werden für Kinder gefiltert.</div>
+    <div class="sarea">
+      <form class="sform" onsubmit="doSearch(event)">
+        <input class="sinp" id="sinp" type="text" placeholder="Was möchtest du wissen? z.B. 'Wie malen Impressionisten?'">
+        <button type="submit" class="sbtn">🔍 Suchen</button>
+      </form>
+
+      <div style="margin-bottom:18px">
+        <div style="font-weight:700;margin-bottom:10px">🌟 Beliebte Themen:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn bs" onclick="qs('Farben mischen für Kinder')">🎨 Farben mischen</button>
+          <button class="btn bs" onclick="qs('Impressionismus einfach erklärt Kinder')">🖼️ Impressionismus</button>
+          <button class="btn bs" onclick="qs('Van Gogh Bilder Kinder')">⭐ Van Gogh</button>
+          <button class="btn bs" onclick="qs('Wie entsteht ein Regenbogen')">🌈 Regenbogen</button>
+          <button class="btn bs" onclick="qs('Tiere malen Anleitung Kinder')">🦋 Tiere malen</button>
+          <button class="btn bs" onclick="qs('Picasso Kubismus Kinder erklärt')">🎭 Picasso</button>
+        </div>
+      </div>
+
+      <div style="font-weight:700;margin-bottom:11px">📚 Tolle Websites für Kinder:</div>
+      <div class="qlinks">
+        <a class="ql" href="https://www.kiddle.co" target="_blank" rel="noopener noreferrer">
+          <span class="qi">🔍</span><span class="qt">Kiddle</span><span class="qd">Sichere Suchmaschine</span>
+        </a>
+        <a class="ql" href="https://www.blinde-kuh.de" target="_blank" rel="noopener noreferrer">
+          <span class="qi">🐮</span><span class="qt">Blinde Kuh</span><span class="qd">Suchmaschine für Kinder</span>
+        </a>
+        <a class="ql" href="https://www.kindernetz.de" target="_blank" rel="noopener noreferrer">
+          <span class="qi">📺</span><span class="qt">KinderNetz</span><span class="qd">SWR für Kinder</span>
+        </a>
+        <a class="ql" href="https://www.kidsweb.de" target="_blank" rel="noopener noreferrer">
+          <span class="qi">🎠</span><span class="qt">KidsWeb</span><span class="qd">Spiele &amp; Wissen</span>
+        </a>
+        <a class="ql" href="https://www.planet-schule.de" target="_blank" rel="noopener noreferrer">
+          <span class="qi">🌍</span><span class="qt">Planet Schule</span><span class="qd">SWR Lernportal</span>
+        </a>
+        <a class="ql" href="https://www.naturdetektive.de" target="_blank" rel="noopener noreferrer">
+          <span class="qi">🌿</span><span class="qt">Naturdetektive</span><span class="qd">Natur entdecken</span>
+        </a>
+      </div>
+      <div class="safe">🛡️ <strong>Sicher surfen:</strong> Diese Suche verwendet <strong>Kiddle.co</strong> — eine speziell für Kinder gefilterte Suchmaschine. Unangemessene Inhalte werden automatisch blockiert.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- WIN OVERLAY -->
+<div class="win" id="winbox">
+  <div class="winc">
+    <div class="we">🏆</div>
+    <div class="wt">Super gemacht!</div>
+    <div class="wm" id="winmsg"></div>
+    <button class="btn bp" style="font-size:1rem;padding:14px 34px" onclick="document.getElementById('winbox').classList.remove('on');startMemory()">🎮 Nochmal!</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// NAVIGATION
+// ══════════════════════════════
+function show(id, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ══════════════════════════════
+// MEMORY GAME
+// ══════════════════════════════
+const COLORS = [
+  {name:'Himmelblau',  hex:'#87CEEB', em:'☁️'},
+  {name:'Sonnengelb',  hex:'#FFD700', em:'☀️'},
+  {name:'Grasgrün',    hex:'#3CB371', em:'🌿'},
+  {name:'Korallenrot', hex:'#FF6B6B', em:'🪸'},
+  {name:'Lavendel',    hex:'#9B59B6', em:'💜'},
+  {name:'Pfirsich',    hex:'#FFAB76', em:'🍑'},
+  {name:'Türkis',      hex:'#20B2AA', em:'💎'},
+  {name:'Magenta',     hex:'#C71585', em:'🌸'},
+  {name:'Ultramarin',  hex:'#3F51B5', em:'🌊'},
+  {name:'Ocker',       hex:'#D4A017', em:'🏺'},
+  {name:'Smaragd',     hex:'#009B77', em:'🌴'},
+  {name:'Zinnoberrot', hex:'#CC2936', em:'🌹'},
+  {name:'Schieferblau',hex:'#607D8B', em:'🗿'},
+  {name:'Siena',       hex:'#A0522D', em:'🍂'},
+  {name:'Limonengrün', hex:'#32CD32', em:'🍋'},
+  {name:'Weinrot',     hex:'#722F37', em:'🍷'},
+];
+
+let diff = 'easy', mCards = [], flipped = [], matched = 0, moves = 0;
+let mSec = 0, mTimer = null, canFlip = true;
+
+function setDiff(d) {
+  diff = d;
+  ['easy','med','hard'].forEach(x => document.getElementById('d-'+x).classList.remove('sel'));
+  document.getElementById('d-'+d).classList.add('sel');
+  document.getElementById('mgrid').className = 'mgrid ' + d;
+}
+
+function startMemory() {
+  clearInterval(mTimer); mSec = 0; moves = 0; matched = 0; flipped = []; canFlip = true;
+  document.getElementById('mtime').textContent = '0:00';
+  document.getElementById('mmoves').textContent = '0';
+  const n = diff === 'easy' ? 8 : diff === 'med' ? 12 : 16;
+  const pool = [...COLORS].sort(() => Math.random()-.5).slice(0,n);
+  mCards = [...pool,...pool].sort(() => Math.random()-.5);
+  const g = document.getElementById('mgrid');
+  g.className = 'mgrid ' + diff;
+  g.innerHTML = '';
+  mCards.forEach((c,i) => {
+    const el = document.createElement('div');
+    el.className = 'mc';
+    el.innerHTML = `<div class="mci"><div class="mcb">🎨</div><div class="mcf" style="background:${c.hex}"><span style="font-size:1.4rem">${c.em}</span><span>${c.name}</span></div></div>`;
+    el.onclick = () => flipCard(el, i);
+    g.appendChild(el);
+  });
+  mTimer = setInterval(() => {
+    mSec++;
+    const m = Math.floor(mSec/60), s = mSec%60;
+    document.getElementById('mtime').textContent = m+':'+(s<10?'0':'')+s;
+  }, 1000);
+}
+
+function flipCard(el, idx) {
+  if (!canFlip || el.classList.contains('flip') || el.classList.contains('done') || flipped.length >= 2) return;
+  el.classList.add('flip');
+  flipped.push({el, idx});
+  if (flipped.length === 2) {
+    moves++;
+    document.getElementById('mmoves').textContent = moves;
+    canFlip = false;
+    const [a,b] = flipped;
+    if (mCards[a.idx].hex === mCards[b.idx].hex) {
+      setTimeout(() => {
+        a.el.classList.add('done'); b.el.classList.add('done');
+        flipped = []; canFlip = true; matched++;
+        const total = diff === 'easy' ? 8 : diff === 'med' ? 12 : 16;
+        if (matched === total) {
+          clearInterval(mTimer);
+          const m = Math.floor(mSec/60), s = mSec%60;
+          document.getElementById('winmsg').textContent =
+            `Alle ${total} Paare in ${moves} Zügen und ${m}:${s<10?'0':''}${s} Min gefunden! 🎉`;
+          document.getElementById('winbox').classList.add('on');
+        }
+      }, 500);
+    } else {
+      setTimeout(() => {
+        a.el.classList.remove('flip'); b.el.classList.remove('flip');
+        flipped = []; canFlip = true;
+      }, 1000);
+    }
+  }
+}
+
+startMemory();
+
+// ══════════════════════════════
+// COLOR MIXER
+// ══════════════════════════════
+const PCOLS = [
+  {name:'Rot',    hex:'#E53935'},
+  {name:'Gelb',   hex:'#FDD835'},
+  {name:'Blau',   hex:'#1E88E5'},
+  {name:'Weiß',   hex:'#F5F5F5'},
+  {name:'Schwarz',hex:'#212121'},
+  {name:'Orange', hex:'#FB8C00'},
+  {name:'Grün',   hex:'#43A047'},
+  {name:'Violett',hex:'#8E24AA'},
+];
+
+const MIXES = {
+  'Rot+Gelb':    {name:'Orange',      hex:'#FF8C00', fact:'🌅 Rot + Gelb = Orange — die Farbe eines strahlenden Sonnenuntergangs!'},
+  'Gelb+Rot':    {name:'Orange',      hex:'#FF8C00', fact:'🌅 Rot + Gelb = Orange — die Farbe eines strahlenden Sonnenuntergangs!'},
+  'Rot+Blau':    {name:'Violett',     hex:'#8B008B', fact:'👑 Rot + Blau = Violett — die Farbe der Könige und Geheimnisse!'},
+  'Blau+Rot':    {name:'Violett',     hex:'#8B008B', fact:'👑 Rot + Blau = Violett — die Farbe der Könige und Geheimnisse!'},
+  'Gelb+Blau':   {name:'Grün',        hex:'#4CAF50', fact:'🌿 Gelb + Blau = Grün — die Farbe der Natur und Hoffnung!'},
+  'Blau+Gelb':   {name:'Grün',        hex:'#4CAF50', fact:'🌿 Gelb + Blau = Grün — die Farbe der Natur und Hoffnung!'},
+  'Rot+Weiß':    {name:'Rosa',        hex:'#FFB6C1', fact:'🌸 Rot + Weiß = Rosa — zart wie Kirschblüten im Frühling!'},
+  'Weiß+Rot':    {name:'Rosa',        hex:'#FFB6C1', fact:'🌸 Rot + Weiß = Rosa — zart wie Kirschblüten im Frühling!'},
+  'Blau+Weiß':   {name:'Hellblau',    hex:'#ADD8E6', fact:'☁️ Blau + Weiß = Hellblau — wie ein wolkenloser Sommerhimmel!'},
+  'Weiß+Blau':   {name:'Hellblau',    hex:'#ADD8E6', fact:'☁️ Blau + Weiß = Hellblau — wie ein wolkenloser Sommerhimmel!'},
+  'Gelb+Weiß':   {name:'Cremeweiß',   hex:'#FFFACD', fact:'🌼 Gelb + Weiß = Cremeweiß — sanft und warm wie Sonnenlicht!'},
+  'Weiß+Gelb':   {name:'Cremeweiß',   hex:'#FFFACD', fact:'🌼 Gelb + Weiß = Cremeweiß — sanft und warm wie Sonnenlicht!'},
+  'Rot+Schwarz': {name:'Dunkelrot',   hex:'#8B0000', fact:'🌹 Rot + Schwarz = Dunkelrot — dramatisch und intensiv!'},
+  'Schwarz+Rot': {name:'Dunkelrot',   hex:'#8B0000', fact:'🌹 Rot + Schwarz = Dunkelrot — dramatisch und intensiv!'},
+  'Gelb+Schwarz':{name:'Olivgrün',    hex:'#808000', fact:'🫒 Gelb + Schwarz = Olivgrün — geerdet wie alte Gemälde!'},
+  'Schwarz+Gelb':{name:'Olivgrün',    hex:'#808000', fact:'🫒 Gelb + Schwarz = Olivgrün — geerdet wie alte Gemälde!'},
+  'Blau+Schwarz':{name:'Marineblau',  hex:'#000080', fact:'🌊 Blau + Schwarz = Marineblau — tief wie der Ozean!'},
+  'Schwarz+Blau':{name:'Marineblau',  hex:'#000080', fact:'🌊 Blau + Schwarz = Marineblau — tief wie der Ozean!'},
+  'Orange+Blau': {name:'Braun',       hex:'#8B6914', fact:'🎨 Orange + Blau sind Komplementärfarben — sie ergeben Braun!'},
+  'Blau+Orange': {name:'Braun',       hex:'#8B6914', fact:'🎨 Orange + Blau sind Komplementärfarben — sie ergeben Braun!'},
+  'Violett+Gelb':{name:'Dunkelbraun', hex:'#5C4033', fact:'🎭 Komplementärfarben Violett + Gelb ergeben ein dunkles Braun!'},
+  'Gelb+Violett':{name:'Dunkelbraun', hex:'#5C4033', fact:'🎭 Komplementärfarben Violett + Gelb ergeben ein dunkles Braun!'},
+  'Rot+Grün':    {name:'Olivbraun',   hex:'#6B7C3A', fact:'🌿 Rot + Grün (Komplementärfarben) ergibt einen Olivton!'},
+  'Grün+Rot':    {name:'Olivbraun',   hex:'#6B7C3A', fact:'🌿 Rot + Grün (Komplementärfarben) ergibt einen Olivton!'},
+  'Orange+Rot':  {name:'Zinnoberrot', hex:'#E34234', fact:'🔥 Orange + Rot = Zinnoberrot — feurig und lebendig!'},
+  'Rot+Orange':  {name:'Zinnoberrot', hex:'#E34234', fact:'🔥 Orange + Rot = Zinnoberrot — feurig und lebendig!'},
+};
+
+const FACTS = [
+  '🎨 <strong>Isaac Newton</strong> entdeckte 1666, dass weißes Licht alle Farben des Regenbogens enthält!',
+  '🌈 Das menschliche Auge kann bis zu <strong>10 Millionen</strong> verschiedene Farben unterscheiden!',
+  '🖌️ Die <strong>Impressionisten</strong> wie Claude Monet setzten kurze bunte Pinselstriche nebeneinander statt glatte Flächen zu malen.',
+  '🔵🔴 <strong>Komplementärfarben</strong> stehen sich im Farbkreis gegenüber — wie Blau und Orange. Nebeneinander wirken sie besonders leuchtend!',
+  '💛 <strong>Vincent van Gogh</strong> liebte Gelb über alles — seine Sonnenblumen und der Sternenhimmel zeigen das deutlich.',
+  '🎭 <strong>Pablo Picasso</strong> hatte eine „Blaue Periode" (1901–1904), in der er fast nur Blautöne verwendete.',
+  '🌸 Was in der Natur schwarz aussieht, ist eigentlich sehr dunkles Violett oder Rot — reinschwarze Blumen gibt es kaum!',
+  '🖼️ <strong>Wassily Kandinsky</strong> glaubte, dass jede Farbe eine eigene Musik hat — Blau klingt wie eine Flöte!',
+];
+
+let mxSel = [];
+
+function initMixer() {
+  const pal = document.getElementById('mxpal');
+  pal.innerHTML = '';
+  PCOLS.forEach((c,i) => {
+    const el = document.createElement('div');
+    el.className = 'mxc';
+    el.style.background = c.hex;
+    el.title = c.name;
+    el.innerHTML = `<span>${c.name}</span>`;
+    el.onclick = () => pickMix(i, el, c);
+    pal.appendChild(el);
+  });
+  document.getElementById('colorfact').innerHTML = FACTS[Math.floor(Math.random()*FACTS.length)];
+}
+
+function pickMix(idx, el, c) {
+  const swatches = document.getElementById('mxpal').children;
+  if (mxSel.length === 0) {
+    mxSel = [{el,c}];
+    el.classList.add('sel');
+    document.getElementById('mx1').style.background = c.hex;
+    document.getElementById('mx1n').textContent = c.name;
+    document.getElementById('mx2').style.background = '#ddd';
+    document.getElementById('mx2n').textContent = '—';
+    document.getElementById('mxres').style.background = '#eee';
+    document.getElementById('mxrname').textContent = '';
+    document.getElementById('mxrfact').textContent = '';
+    document.getElementById('mxhint').textContent = `✅ "${c.name}" gewählt — jetzt eine zweite Farbe wählen!`;
+  } else if (mxSel.length === 1) {
+    if (mxSel[0].c.name === c.name) {
+      Array.from(swatches).forEach(s => s.classList.remove('sel'));
+      mxSel = [];
+      document.getElementById('mx1').style.background = '#ddd';
+      document.getElementById('mx1n').textContent = '—';
+      document.getElementById('mxhint').textContent = '👆 Wähle eine erste Farbe!';
+      return;
+    }
+    el.classList.add('sel');
+    document.getElementById('mx2').style.background = c.hex;
+    document.getElementById('mx2n').textContent = c.name;
+    const key = mxSel[0].c.name + '+' + c.name;
+    const mix = MIXES[key];
+    setTimeout(() => {
+      if (mix) {
+        document.getElementById('mxres').style.background = mix.hex;
+        document.getElementById('mxrname').textContent = mix.name;
+        document.getElementById('mxrfact').textContent = mix.fact;
+      } else {
+        const h1 = mxSel[0].c.hex, h2 = c.hex;
+        const r = Math.round((parseInt(h1.slice(1,3),16)+parseInt(h2.slice(1,3),16))/2);
+        const g = Math.round((parseInt(h1.slice(3,5),16)+parseInt(h2.slice(3,5),16))/2);
+        const b = Math.round((parseInt(h1.slice(5,7),16)+parseInt(h2.slice(5,7),16))/2);
+        const hex = '#'+r.toString(16).padStart(2,'0')+g.toString(16).padStart(2,'0')+b.toString(16).padStart(2,'0');
+        document.getElementById('mxres').style.background = hex;
+        document.getElementById('mxrname').textContent = 'Gemischter Ton';
+        document.getElementById('mxrfact').textContent = mxSel[0].c.name+' + '+c.name+' ergibt diesen Farbton!';
+      }
+      document.getElementById('mxhint').textContent = '🎨 Tolle Mischung! Probiere andere Kombinationen.';
+    }, 300);
+    mxSel = [{el: mxSel[0].el, c: mxSel[0].c}];
+    setTimeout(() => {
+      Array.from(swatches).forEach(s => s.classList.remove('sel'));
+      mxSel = [];
+      document.getElementById('mxhint').textContent = '👆 Wähle eine erste Farbe!';
+    }, 4000);
+  }
+}
+
+initMixer();
+
+// ══════════════════════════════
+// MAL-STUDIO
+// ══════════════════════════════
+const SWCOLS = [
+  '#000000','#FFFFFF','#E53935','#FB8C00',
+  '#FDD835','#43A047','#1E88E5','#8E24AA',
+  '#00ACC1','#D81B60','#FF7043','#FFCA28',
+  '#66BB6A','#42A5F5','#AB47BC','#FFAB76',
+  '#6D4C41','#78909C','#F48FB1','#80DEEA',
+  '#DCEDC8','#FFF9C4','#B3E5FC','#E1BEE7',
+];
+const CNAMES = {
+  '#000000':'Schwarz','#FFFFFF':'Weiß','#E53935':'Zinnoberrot','#FB8C00':'Kadmiumorange',
+  '#FDD835':'Kadmiumgelb','#43A047':'Smaragdgrün','#1E88E5':'Kobaltblau','#8E24AA':'Violett',
+  '#00ACC1':'Türkis','#D81B60':'Karminrot','#FF7043':'Koralle','#FFCA28':'Goldgelb',
+  '#66BB6A':'Frühlingsgrün','#42A5F5':'Himmelblau','#AB47BC':'Lavendel','#FFAB76':'Pfirsich',
+  '#6D4C41':'Siena','#78909C':'Schiefergrau','#F48FB1':'Rosé','#80DEEA':'Azur',
+  '#DCEDC8':'Mintgrün','#FFF9C4':'Cremeweiß','#B3E5FC':'Eisblau','#E1BEE7':'Flieder',
+};
+const TASKS = [
+  'Male einen Sonnenuntergang — nutze nur Rot, Orange, Gelb und Lila!',
+  'Zeichne eine Unterwasserwelt in vielen Blau- und Grüntönen!',
+  'Male im Stil von Van Gogh — mit vielen kleinen, geschwungenen Pinselstrichen!',
+  'Zeichne einen Regenbogen über einer grünen Wiese!',
+  'Male eine Vase mit bunten Frühlingsblumen!',
+  'Zeichne dein Lieblingstier in deinen Lieblingsfarben!',
+  'Male eine winterliche Landschaft in Weiß, Eisblau und Grau!',
+  'Zeichne ein abstraktes Bild — nur Kreise, Linien und Farben!',
+  'Male einen Herbstwald in Rot, Orange, Gelb und Braun!',
+  'Zeichne den Nachthimmel mit Mond und vielen Sternen!',
+  'Male ein Bild, das eine Jahreszeit zeigt — ohne Worte, nur durch Farben!',
+  'Zeichne eine Stadt der Zukunft — in Farben, die du magst!',
+];
+
+let tool = 'brush', actCol = '#E53935', brushSz = 8, brushOpa = 1;
+let drawing = false, lx = 0, ly = 0;
+
+function initStudio() {
+  const g = document.getElementById('swgrid');
+  g.innerHTML = '';
+  SWCOLS.forEach(col => {
+    const s = document.createElement('div');
+    s.className = 'sw' + (col === actCol ? ' on' : '');
+    s.style.background = col;
+    s.title = CNAMES[col] || col;
+    s.onclick = () => {
+      document.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
+      s.classList.add('on');
+      actCol = col;
+      document.getElementById('actcol').style.background = col;
+      if (tool === 'eraser') setTool('brush');
+    };
+    g.appendChild(s);
+  });
+
+  const cv = document.getElementById('paintCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+
+  function pos(e) {
+    const r = cv.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (cv.width / r.width),
+      y: (e.clientY - r.top) * (cv.height / r.height)
+    };
+  }
+
+  cv.addEventListener('mousedown', e => { drawing = true; const p = pos(e); lx = p.x; ly = p.y; if(tool==='fill'){fill(p.x,p.y);drawing=false;} });
+  cv.addEventListener('mousemove', e => { if(!drawing) return; const p=pos(e); paint(ctx,p.x,p.y); lx=p.x; ly=p.y; });
+  cv.addEventListener('mouseup', () => { drawing=false; ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; });
+  cv.addEventListener('mouseleave', () => { drawing=false; });
+
+  cv.addEventListener('touchstart', e => { e.preventDefault(); const t=e.touches[0]; const p=pos(t); drawing=true; lx=p.x; ly=p.y; if(tool==='fill'){fill(p.x,p.y);drawing=false;} }, {passive:false});
+  cv.addEventListener('touchmove', e => { e.preventDefault(); if(!drawing) return; const p=pos(e.touches[0]); paint(ctx,p.x,p.y); lx=p.x; ly=p.y; }, {passive:false});
+  cv.addEventListener('touchend', () => { drawing=false; });
+
+  newTask();
+}
+
+function paint(ctx, x, y) {
+  ctx.globalAlpha = brushOpa;
+  ctx.lineWidth = brushSz;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (tool === 'eraser') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = actCol;
+  }
+  ctx.beginPath();
+  ctx.moveTo(lx, ly);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+}
+
+function fill(sx, sy) {
+  const cv = document.getElementById('paintCanvas');
+  const ctx = cv.getContext('2d');
+  sx = Math.round(sx); sy = Math.round(sy);
+  const id = ctx.getImageData(0,0,cv.width,cv.height);
+  const d = id.data;
+  const w = cv.width, h = cv.height;
+  const idx = (x,y) => (y*w+x)*4;
+  const i0 = idx(sx,sy);
+  const tr=d[i0],tg=d[i0+1],tb=d[i0+2];
+  const fr=parseInt(actCol.slice(1,3),16);
+  const fg=parseInt(actCol.slice(3,5),16);
+  const fb=parseInt(actCol.slice(5,7),16);
+  if(tr===fr&&tg===fg&&tb===fb) return;
+  const stack=[[sx,sy]], seen=new Uint8Array(w*h);
+  const match=(x,y)=>{const i=idx(x,y);return Math.abs(d[i]-tr)<32&&Math.abs(d[i+1]-tg)<32&&Math.abs(d[i+2]-tb)<32;};
+  let iters=0;
+  while(stack.length&&iters<300000){
+    iters++;
+    const [x,y]=stack.pop();
+    if(x<0||x>=w||y<0||y>=h) continue;
+    if(seen[y*w+x]) continue;
+    if(!match(x,y)) continue;
+    seen[y*w+x]=1;
+    const i=idx(x,y);
+    d[i]=fr;d[i+1]=fg;d[i+2]=fb;d[i+3]=255;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  ctx.putImageData(id,0,0);
+}
+
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tl-'+t).classList.add('on');
+}
+
+function clearCanvas() {
+  const cv = document.getElementById('paintCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0,0,cv.width,cv.height);
+}
+
+function downloadCanvas() {
+  const a = document.createElement('a');
+  a.download = 'mein-kunstwerk.png';
+  a.href = document.getElementById('paintCanvas').toDataURL();
+  a.click();
+}
+
+function newTask() {
+  document.getElementById('tasktext').textContent = TASKS[Math.floor(Math.random()*TASKS.length)];
+}
+
+initStudio();
+
+// ══════════════════════════════
+// FARBWAHRNEHMUNG
+// ══════════════════════════════
+const PCOLS2 = [
+  // Level 1 — sehr unterschiedlich
+  {name:'Rot',        hex:'#E53935'},{name:'Blau',       hex:'#1E88E5'},
+  {name:'Gelb',       hex:'#FDD835'},{name:'Grün',       hex:'#43A047'},
+  {name:'Orange',     hex:'#FB8C00'},{name:'Violett',    hex:'#8E24AA'},
+  {name:'Pink',       hex:'#E91E63'},{name:'Türkis',     hex:'#00ACC1'},
+  // Level 2 — ähnlicher
+  {name:'Hellblau',   hex:'#64B5F6'},{name:'Dunkelblau', hex:'#1565C0'},
+  {name:'Hellgrün',   hex:'#81C784'},{name:'Dunkelgrün', hex:'#2E7D32'},
+  {name:'Lachs',      hex:'#FF8A65'},{name:'Terrakotta', hex:'#BF360C'},
+  {name:'Lavendel',   hex:'#CE93D8'},{name:'Brombeere',  hex:'#6A1B9A'},
+  // Level 3 — sehr ähnlich
+  {name:'Himmelblau', hex:'#87CEEB'},{name:'Kornblume',  hex:'#6495ED'},
+  {name:'Mintgrün',   hex:'#98FB98'},{name:'Seegrün',    hex:'#3CB371'},
+  {name:'Koralle',    hex:'#FF7F7F'},{name:'Tomate',     hex:'#FF6347'},
+  {name:'Flieder',    hex:'#DDA0DD'},{name:'Pflaume',    hex:'#C8A2C8'},
+];
+
+let pOk=0, pNo=0, pLv=1, ptarget=null;
+
+function startPercept() {
+  pOk=0; pNo=0; pLv=1;
+  ['pok','pno','plv'].forEach(id => document.getElementById(id).textContent = id==='plv'?'1':'0');
+  document.getElementById('pstart').style.display='none';
+  nextRound();
+}
+
+function nextRound() {
+  ['presult','pguess','pshow'].forEach(id => document.getElementById(id).style.display='none');
+  const off = Math.min(Math.floor((pLv-1)/3)*8, 16);
+  const pool = PCOLS2.slice(off, off+8+Math.min(pLv,8));
+  ptarget = pool[Math.floor(Math.random()*pool.length)];
+  document.getElementById('ptarget').style.background = ptarget.hex;
+  document.getElementById('pshow').style.display='block';
+  let c=3;
+  document.getElementById('pcount').textContent=c;
+  const t = setInterval(()=>{
+    c--;
+    document.getElementById('pcount').textContent=c;
+    if(c<=0){
+      clearInterval(t);
+      document.getElementById('pshow').style.display='none';
+      showOptions();
+    }
+  },1000);
+}
+
+function showOptions() {
+  const off = Math.min(Math.floor((pLv-1)/3)*8, 16);
+  const pool = PCOLS2.slice(off, off+8+Math.min(pLv,8));
+  const dist = pool.filter(c=>c.hex!==ptarget.hex).sort(()=>Math.random()-.5).slice(0,3);
+  const opts = [...dist, ptarget].sort(()=>Math.random()-.5);
+  const g = document.getElementById('ogrid');
+  g.innerHTML='';
+  opts.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='obtn';
+    b.style.background=c.hex;
+    b.dataset.hex=c.hex;
+    b.onclick=()=>checkAns(b, c.hex===ptarget.hex);
+    g.appendChild(b);
+  });
+  document.getElementById('pguess').style.display='block';
+}
+
+function checkAns(btn, correct) {
+  document.querySelectorAll('.obtn').forEach(b=>{
+    b.style.pointerEvents='none';
+    if(b.dataset.hex===ptarget.hex) b.classList.add('ok');
+  });
+  if(!correct) btn.classList.add('no');
+  if(correct){
+    pOk++; document.getElementById('pok').textContent=pOk;
+    document.getElementById('remi').textContent='🎉';
+    document.getElementById('rtxt').textContent='Richtig! Klasse!';
+    document.getElementById('rdet').textContent=`Du hast "${ptarget.name}" erkannt!`;
+    if(pOk%3===0){pLv++;document.getElementById('plv').textContent=pLv;}
+  } else {
+    pNo++; document.getElementById('pno').textContent=pNo;
+    document.getElementById('remi').textContent='💪';
+    document.getElementById('rtxt').textContent='Knapp daneben!';
+    document.getElementById('rdet').textContent=`Die richtige Farbe war "${ptarget.name}". Nächstes Mal klappt es!`;
+  }
+  document.getElementById('pguess').style.display='none';
+  document.getElementById('presult').style.display='block';
+}
+
+// ══════════════════════════════
+// KINDER-SUCHE
+// ══════════════════════════════
+function doSearch(e) {
+  e.preventDefault();
+  const q = document.getElementById('sinp').value.trim();
+  if (!q) return;
+  window.open('https://www.kiddle.co/s.php?q=' + encodeURIComponent(q), '_blank', 'noopener,noreferrer');
+}
+function qs(q) {
+  document.getElementById('sinp').value = q;
+  window.open('https://www.kiddle.co/s.php?q=' + encodeURIComponent(q), '_blank', 'noopener,noreferrer');
+}
+</script>
+</body>
+</html>
