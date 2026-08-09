@@ -432,6 +432,14 @@
     📄 Word (.docx) herunterladen
   </button>
   <div class="export-bar-divider"></div>
+  <button class="btn btn-outline" onclick="exportDraft()" title="Bearbeitbaren Entwurf als PONTUS.json speichern – auf anderem Gerät wieder ladbar">
+    💾 Entwurf speichern (bearbeitbar)
+  </button>
+  <button class="btn btn-outline" onclick="document.getElementById('draftFile').click()" title="Eine PONTUS.json-Entwurfsdatei laden und weiterbearbeiten">
+    📂 Entwurf laden
+  </button>
+  <input type="file" id="draftFile" accept=".json,application/json" style="display:none" onchange="importDraft(event)">
+  <div class="export-bar-divider"></div>
   <button class="btn btn-ghost" onclick="clearAll()">
     ✕ Alles zurücksetzen
   </button>
@@ -471,25 +479,54 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem('protokoll_data');
     if (!raw) return;
-    const d = JSON.parse(raw);
-    setField('titel', d.titel);
-    setField('typ', d.typ);
-    setField('datum', d.datum);
-    setField('uhrzeit_von', d.uhrzeit_von);
-    setField('uhrzeit_bis', d.uhrzeit_bis);
-    setField('ort', d.ort);
-    setField('protokollfuehrer', d.protokollfuehrer);
-    setField('teilnehmer', d.teilnehmer);
-    setField('abwesend', d.abwesend);
-    setField('verteiler', d.verteiler);
-    setField('naechster_termin', d.naechster_termin);
-    setField('anmerkungen', d.anmerkungen);
-    if (d.tops && d.tops.length) {
-      document.getElementById('topList').innerHTML = '';
-      topCounter = 0;
-      d.tops.forEach(t => addTop(t));
-    }
+    applyData(JSON.parse(raw));
   } catch(e) { /* ignore */ }
+}
+
+// Befüllt das gesamte Formular aus einem Datenobjekt (LocalStorage ODER importierte PONTUS.json)
+function applyData(d) {
+  if (!d || typeof d !== 'object') return;
+  ['titel','typ','datum','uhrzeit_von','uhrzeit_bis','ort','protokollfuehrer',
+   'teilnehmer','abwesend','verteiler','naechster_termin','anmerkungen']
+    .forEach(k => setField(k, d[k]));
+  document.getElementById('topList').innerHTML = '';
+  topCounter = 0;
+  if (d.tops && d.tops.length) {
+    d.tops.forEach(t => addTop(t));
+  } else {
+    addTop();
+  }
+  renumberTops();
+}
+
+// ────────────────────────────────────────────
+// Entwurf speichern / laden (bearbeitbare Datei, geräteübergreifend)
+// ────────────────────────────────────────────
+function exportDraft() {
+  const data = collectData();
+  data._pontus = 'protokoll-entwurf';   // Kennung zur Wiedererkennung
+  data._version = 1;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  saveAs(blob, 'PONTUS.json');
+  toast('Entwurf gespeichert: PONTUS.json');
+}
+
+function importDraft(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const d = JSON.parse(e.target.result);
+      applyData(d);
+      saveToStorage();
+      toast('Entwurf geladen: ' + file.name);
+    } catch(err) {
+      alert('Die Datei konnte nicht gelesen werden. Bitte eine gültige PONTUS-Entwurfsdatei (.json) auswählen.');
+    }
+    event.target.value = '';  // erlaubt erneutes Laden derselben Datei
+  };
+  reader.readAsText(file);
 }
 
 function setField(id, val) {
@@ -908,8 +945,7 @@ function exportPDF() {
     doc.line(MARGIN, 287, PAGE_W - MARGIN, 287);
   }
 
-  const filename = (d.titel ? d.titel.replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '') : 'Protokoll')
-    + '_' + (d.datum || new Date().toISOString().split('T')[0]) + '.pdf';
+  const filename = 'PONTUS.pdf';
   doc.save(filename);
   toast('PDF gespeichert: ' + filename);
 }
@@ -1173,8 +1209,7 @@ async function exportWord() {
   });
 
   const buffer = await Packer.toBlob(doc2);
-  const filename = (d.titel ? d.titel.replace(/[^a-zA-Z0-9äöüÄÖÜß _-]/g, '') : 'Protokoll')
-    + '_' + (d.datum || new Date().toISOString().split('T')[0]) + '.docx';
+  const filename = 'PONTUS.docx';
   saveAs(buffer, filename);
   toast('Word-Dokument gespeichert: ' + filename);
 }
